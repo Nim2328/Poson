@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digital Poson Heritage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Noto+Sans+Sinhala:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F7EFE2;
+    --gold:#E8A33D;
+    --maroon:#6B1F2A;
+    --ink:#2A1E14;
+    --forest:#3A4A38;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:radial-gradient(circle at 50% 20%, #fffaf1 0%, var(--cream) 55%, #efe2c9 100%);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px;
+  }
+  .card{
+    max-width:420px;
+    width:100%;
+    text-align:center;
+  }
+  .lantern{
+    width:64px;height:64px;margin:0 auto 18px;
+    border-radius:50% 50% 46% 46%;
+    background:radial-gradient(circle at 50% 35%, #ffe9b8, var(--gold) 70%);
+    box-shadow:0 0 28px 6px rgba(232,163,61,0.55);
+    animation:flicker 2.6s ease-in-out infinite;
+  }
+  @keyframes flicker{
+    0%,100%{transform:scale(1);opacity:1;}
+    50%{transform:scale(0.94);opacity:0.85;}
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.6rem;
+    color:var(--maroon);
+    line-height:1.25;
+  }
+  .si{
+    font-family:'Noto Sans Sinhala',sans-serif;
+    font-size:1.1rem;
+    margin-top:6px;
+    color:var(--forest);
+  }
+  p.status{
+    margin-top:22px;
+    font-size:0.92rem;
+    color:#6b5b45;
+  }
+  .spinner{
+    width:22px;height:22px;
+    border:2.5px solid rgba(107,31,42,0.18);
+    border-top-color:var(--maroon);
+    border-radius:50%;
+    margin:18px auto 0;
+    animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  a.manual{
+    display:inline-block;
+    margin-top:28px;
+    padding:12px 22px;
+    background:var(--maroon);
+    color:var(--cream);
+    text-decoration:none;
+    border-radius:999px;
+    font-size:0.9rem;
+    font-weight:500;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="lantern"></div>
+    <h1>Digital Poson Heritage</h1>
+    <div class="si">මිහින්තලේ ඉතිහාසය AR තුළින්</div>
+    <p class="status" id="statusText">Opening your AR experience…</p>
+    <div class="spinner"></div>
+    <a class="manual" id="manualLink" href="webar/mihintale-ar.html">Continue in browser</a>
+  </div>
+
+<script>
+  // ---- CONFIG: update these for your real deployment ----
+  const APP_SCHEME_LINK = "posonar://scene/mihintale";       // opens native Unity app if installed
+  const WEBAR_FALLBACK   = "webar/mihintale-ar.html";         // browser-based AR (no install)
+  const PLAYSTORE_LINK   = "https://play.google.com/store/apps/details?id=com.yourorg.posonar";
+  const WAIT_MS          = 1500;
+  // ---------------------------------------------------------
+
+  let appMayHaveOpened = false;
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) appMayHaveOpened = true;
+  });
+  window.addEventListener("blur", () => { appMayHaveOpened = true; });
+
+  // Attempt native app first
+  window.location.href = APP_SCHEME_LINK;
+
+  setTimeout(() => {
+    if (!appMayHaveOpened) {
+      document.getElementById("statusText").textContent =
+        "App not found — loading browser AR experience…";
+      window.location.href = WEBAR_FALLBACK;
+    }
+  }, WAIT_MS);
+</script>
+</body>
+</html>
