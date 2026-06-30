@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Mihintale AR · Poson Heritage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Sans+Sinhala:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<style>
+  :root{
+    --cream:#F7EFE2;
+    --gold:#E8A33D;
+    --maroon:#6B1F2A;
+    --ink:#241B12;
+    --forest:#3A4A38;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;background:var(--ink);}
+  body{font-family:'Inter',sans-serif;color:var(--cream);}
+
+  /* ---------- START SCREEN ---------- */
+  #startScreen{
+    position:fixed;inset:0;z-index:30;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:32px;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(232,163,61,0.25), transparent 55%),
+      linear-gradient(180deg, #1c140d 0%, var(--ink) 100%);
+  }
+  .arch{
+    width:120px;height:90px;margin-bottom:22px;
+    border:3px solid var(--gold);
+    border-bottom:none;
+    border-radius:60px 60px 0 0;
+    box-shadow:0 0 30px rgba(232,163,61,0.35);
+    position:relative;
+  }
+  .arch::after{
+    content:"";position:absolute;left:50%;top:62%;
+    width:10px;height:10px;border-radius:50%;
+    background:var(--gold);transform:translateX(-50%);
+    box-shadow:0 0 14px 4px rgba(232,163,61,0.8);
+    animation:glow 2.4s ease-in-out infinite;
+  }
+  @keyframes glow{0%,100%{opacity:1;}50%{opacity:0.4;}}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.7rem;color:var(--gold);}
+  .si-title{font-family:'Noto Sans Sinhala',sans-serif;font-size:1.15rem;margin-top:4px;color:#e9d9b8;}
+  .tagline{font-size:0.88rem;color:#cdbfa4;margin-top:14px;max-width:300px;line-height:1.5;}
+  .startBtn{
+    margin-top:30px;padding:14px 36px;border:none;border-radius:999px;
+    background:var(--gold);color:var(--ink);font-weight:600;font-size:1rem;
+    font-family:'Inter',sans-serif;letter-spacing:0.02em;cursor:pointer;
+  }
+  .langRow{margin-top:18px;display:flex;gap:8px;}
+  .langBtn{
+    padding:6px 14px;border-radius:999px;border:1px solid rgba(232,163,61,0.4);
+    background:transparent;color:#cdbfa4;font-size:0.78rem;cursor:pointer;
+  }
+  .langBtn.active{background:var(--gold);color:var(--ink);border-color:var(--gold);}
+  .disclaimer{margin-top:24px;font-size:0.72rem;color:#8a7c63;max-width:280px;line-height:1.5;}
+
+  /* ---------- AR VIEW ---------- */
+  #arWrap{position:fixed;inset:0;display:none;}
+  model-viewer{width:100%;height:100%;--poster-color:transparent;}
+
+  .topBar{
+    position:absolute;top:0;left:0;right:0;z-index:10;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 16px;
+    background:linear-gradient(180deg, rgba(0,0,0,0.55), transparent);
+  }
+  .pill{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(36,27,18,0.6);backdrop-filter:blur(6px);
+    border:1px solid rgba(232,163,61,0.3);
+    border-radius:999px;padding:8px 12px;
+    color:var(--cream);font-size:0.78rem;
+  }
+  .iconBtn{
+    width:38px;height:38px;border-radius:50%;
+    background:rgba(36,27,18,0.6);backdrop-filter:blur(6px);
+    border:1px solid rgba(232,163,61,0.3);
+    color:var(--gold);font-size:1.05rem;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .btnRow{display:flex;gap:8px;}
+
+  .bottomBar{
+    position:absolute;bottom:0;left:0;right:0;z-index:10;
+    display:flex;justify-content:center;gap:14px;
+    padding:18px 16px 26px;
+    background:linear-gradient(0deg, rgba(0,0,0,0.55), transparent);
+  }
+
+  /* hotspot tap targets */
+  .hotspot{
+    width:26px;height:26px;border-radius:50%;
+    background:rgba(232,163,61,0.85);
+    border:2px solid var(--cream);
+    box-shadow:0 0 0 6px rgba(232,163,61,0.22);
+    cursor:pointer;
+  }
+  .hotspot span{display:none;}
+
+  /* ---------- INFO SHEET ---------- */
+  #infoSheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:20;
+    background:var(--cream);color:var(--ink);
+    border-radius:22px 22px 0 0;
+    padding:22px 22px 28px;
+    transform:translateY(110%);
+    transition:transform 0.35s ease;
+    box-shadow:0 -10px 30px rgba(0,0,0,0.35);
+  }
+  #infoSheet.open{transform:translateY(0);}
+  #infoSheet h2{font-family:'Fraunces',serif;color:var(--maroon);font-size:1.2rem;margin-bottom:8px;}
+  #infoSheet p{font-size:0.92rem;line-height:1.55;color:#3a2c1c;}
+  #infoSheet .closeRow{display:flex;justify-content:flex-end;}
+  #infoSheet .closeBtn{
+    border:none;background:none;color:var(--maroon);font-size:0.85rem;
+    font-weight:600;cursor:pointer;padding:6px 0;
+  }
+  .playInfoAudio{
+    margin-top:14px;padding:9px 18px;border:none;border-radius:999px;
+    background:var(--maroon);color:var(--cream);font-size:0.82rem;
+    font-weight:500;cursor:pointer;
+  }
+
+  #arPrompt{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:9;text-align:center;font-size:0.85rem;color:#cdbfa4;
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="startScreen">
+  <div class="arch"></div>
+  <h1 data-en="Digital Poson Heritage" data-si="ඩිජිටල් පොසොන් උරුමය">Digital Poson Heritage</h1>
+  <div class="si-title" data-en="Ancient Mihintale, brought to your space" data-si="පුරාණ මිහින්තලය ඔබේ අවකාශයට">Ancient Mihintale, brought to your space</div>
+  <p class="tagline" data-en="Point your camera at a flat surface to witness the meeting of King Devanampiya Tissa and Arahat Mahinda Thero."
+     data-si="සමතල පෘෂ්ඨයක් කරා ඔබේ කැමරාව යොමු කර, දේවානම්පියතිස්ස රජතුමා සහ අරහත් මිහිඳු මහ රහතන් වහන්සේ අතර හමුව නරඹන්න.">
+     Point your camera at a flat surface to witness the meeting of King Devanampiya Tissa and Arahat Mahinda Thero.</p>
+
+  <button class="startBtn" id="startBtn" data-en="Start AR Experience" data-si="AR අත්දැකීම ආරම්භ කරන්න">Start AR Experience</button>
+
+  <div class="langRow">
+    <button class="langBtn active" data-lang="en">EN</button>
+    <button class="langBtn" data-lang="si">සිං</button>
+  </div>
+
+  <p class="disclaimer" data-en="An artistic recreation for educational purposes. Character and scene models shown here are placeholders pending final 3D assets."
+     data-si="අධ්‍යාපනික අරමුණු සඳහා නිර්මාණාත්මක නැවත නිර්මාණයකි. මෙහි ඇති රූප තාවකාලික ආදේශක වේ.">
+     An artistic recreation for educational purposes. Character and scene models shown here are placeholders pending final 3D assets.</p>
+</div>
+
+<!-- AR VIEW -->
+<div id="arWrap">
+  <model-viewer id="viewer"
+    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+    ar
+    ar-modes="scene-viewer webxr quick-look"
+    ar-placement="floor"
+    camera-controls
+    auto-rotate
+    shadow-intensity="1"
+    exposure="0.9"
+    tone-mapping="neutral"
+    environment-image="neutral"
+    poster-color="#241B12">
+
+    <button slot="hotspot-king" class="hotspot" data-position="0.1 0.7 0.1" data-normal="0 1 0"
+      data-info-en="The King" data-info-si="රජතුමා"
+      data-text-en="King Devanampiya Tissa ruled Anuradhapura in the 3rd century BCE. While hunting at Mihintale, he encountered Arahat Mahinda Thero — a meeting that would bring Buddhism to Sri Lanka."
+      data-text-si="දේවානම්පියතිස්ස රජතුමා ක්‍රි.පූ. 3 වන සියවසේ අනුරාධපුර පාලනය කළේය. මිහින්තලයේ දඩයම් කරමින් සිටියදී, ඔහු අරහත් මිහිඳු මහ රහතන් වහන්සේ හමුවිය — එම හමුව ශ්‍රී ලංකාවට බුද්ධාගම ගෙන ආවේය."
+      onclick="showInfo(this)"><span>King</span></button>
+
+  </model-viewer>
+
+  <p id="arPrompt" data-en="Move your phone slowly to find a surface" data-si="පෘෂ්ඨයක් සොයා ගැනීමට ඔබේ දුරකථනය සෙමින් චලනය කරන්න">Move your phone slowly to find a surface</p>
+
+  <div class="topBar">
+    <div class="pill" id="sceneTitle">⛩ Mihintale · Poson</div>
+    <div class="btnRow">
+      <div class="iconBtn" id="muteBtn" title="Mute">🔊</div>
+      <div class="iconBtn" id="langBtnAR">EN</div>
+    </div>
+  </div>
+
+  <div class="bottomBar">
+    <div class="iconBtn" id="restartBtn" title="Restart scene">⟲</div>
+    <div class="iconBtn" id="playPauseBtn" title="Play/Pause">⏸</div>
+    <div class="iconBtn" id="infoBtn" title="About this scene">ⓘ</div>
+  </div>
+
+  <div id="infoSheet">
+    <div class="closeRow"><button class="closeBtn" id="closeInfo">✕ Close</button></div>
+    <h2 id="infoTitle">The King</h2>
+    <p id="infoBody"></p>
+    <button class="playInfoAudio" id="playInfoAudio" data-en="▶ Play narration" data-si="▶ විස්තරය අසන්න">▶ Play narration</button>
+  </div>
+</div>
+
+<audio id="bgMusic" loop>
+  <!-- Replace with your hosted background music file -->
+  <!-- <source src="audio/poson-theme.mp3" type="audio/mpeg"> -->
+</audio>
+<audio id="narration">
+  <!-- Replace with your hosted narration file per language -->
+</audio>
+
+<script>
+  let currentLang = "en";
+  const startScreen = document.getElementById("startScreen");
+  const arWrap = document.getElementById("arWrap");
+  const viewer = document.getElementById("viewer");
+  const infoSheet = document.getElementById("infoSheet");
+  const bgMusic = document.getElementById("bgMusic");
+  const narration = document.getElementById("narration");
+
+  function applyLanguage(lang){
+    currentLang = lang;
+    document.querySelectorAll("[data-en]").forEach(el=>{
+      el.textContent = lang === "en" ? el.dataset.en : el.dataset.si;
+    });
+    document.getElementById("langBtnAR").textContent = lang === "en" ? "EN" : "සිං";
+    document.querySelectorAll(".langBtn").forEach(b=>{
+      b.classList.toggle("active", b.dataset.lang === lang);
+    });
+  }
+
+  document.querySelectorAll(".langBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=> applyLanguage(btn.dataset.lang));
+  });
+
+  document.getElementById("langBtnAR").addEventListener("click", ()=>{
+    applyLanguage(currentLang === "en" ? "si" : "en");
+  });
+
+  document.getElementById("startBtn").addEventListener("click", ()=>{
+    startScreen.style.display = "none";
+    arWrap.style.display = "block";
+    bgMusic.play().catch(()=>{ /* autoplay may be blocked until user gesture; this click counts */ });
+  });
+
+  // Hide "find a surface" hint once model loads / AR activates
+  viewer.addEventListener("ar-status", (e)=>{
+    document.getElementById("arPrompt").style.display =
+      e.detail.status === "session-started" ? "none" : "block";
+  });
+  viewer.addEventListener("load", ()=>{
+    document.getElementById("arPrompt").style.display = "none";
+  });
+
+  // Mute toggle
+  let muted = false;
+  document.getElementById("muteBtn").addEventListener("click", function(){
+    muted = !muted;
+    bgMusic.muted = muted;
+    narration.muted = muted;
+    this.textContent = muted ? "🔇" : "🔊";
+  });
+
+  // Play/Pause auto-rotate as a stand-in for "animation timeline" control
+  let playing = true;
+  document.getElementById("playPauseBtn").addEventListener("click", function(){
+    playing = !playing;
+    viewer.autoRotate = playing;
+    this.textContent = playing ? "⏸" : "▶";
+  });
+
+  document.getElementById("restartBtn").addEventListener("click", ()=>{
+    viewer.cameraOrbit = "0deg 75deg 105%";
+    viewer.autoRotate = true;
+    playing = true;
+    document.getElementById("playPauseBtn").textContent = "⏸";
+  });
+
+  // Hotspot tap -> info sheet
+  function showInfo(btn){
+    document.getElementById("infoTitle").textContent =
+      currentLang === "en" ? btn.dataset.infoEn : btn.dataset.infoSi;
+    document.getElementById("infoBody").textContent =
+      currentLang === "en" ? btn.dataset.textEn : btn.dataset.textSi;
+    infoSheet.classList.add("open");
+  }
+  document.getElementById("infoBtn").addEventListener("click", ()=>{
+    document.getElementById("infoTitle").textContent = currentLang === "en" ? "About this scene" : "මෙම දර්ශනය ගැන";
+    document.getElementById("infoBody").textContent = currentLang === "en"
+      ? "This recreates the moment Buddhism arrived in Sri Lanka at Mihintale, Poson Poya day, over 2,300 years ago."
+      : "මෙය ක්‍රි.පූ. වසර 2,300කට පෙර පොසොන් පොහෝ දින මිහින්තලයේදී ශ්‍රී ලංකාවට බුද්ධාගම පැමිණි මොහොත නැවත නිර්මාණය කරයි.";
+    infoSheet.classList.add("open");
+  });
+  document.getElementById("closeInfo").addEventListener("click", ()=>{
+    infoSheet.classList.remove("open");
+  });
+  document.getElementById("playInfoAudio").addEventListener("click", ()=>{
+    if (narration.src) { narration.currentTime = 0; narration.play(); }
+  });
+</script>
+</body>
+</html>
